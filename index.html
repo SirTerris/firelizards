@@ -9,20 +9,24 @@
     pre { background: #f4f4f4; padding: 10px; }
     input.rename-input { margin-left: 10px; }
     textarea { width: 100%; height: 100px; margin-top: 10px; }
-    .prettyshinies-counter {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      background: #fffae6;
-      border: 1px solid #ffd700;
-      padding: 5px 10px;
+    .prettyshinies {
+      position: fixed;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #ffd700;
+      color: #000;
+      padding: 5px 15px;
       border-radius: 5px;
       font-weight: bold;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+      z-index: 1000;
     }
   </style>
 </head>
 <body>
-  <div class="prettyshinies-counter">
+
+  <div class="prettyshinies">
     Prettyshinies: <span id="prettyshinies">0</span>
   </div>
 
@@ -51,15 +55,40 @@
     <button onclick="importFirelizards()">⬆️ Import</button>
     <textarea id="dataArea" placeholder="Copy/exported data here or paste to import..."></textarea>
     <ul id="flList"></ul>
-    <label for="exportSelect">Select Firelizard to Export:</label>
+  <label for="exportSelect">Select Firelizard to Export:</label>
     <select id="exportSelect"></select>
     <button onclick="exportSingleFirelizard()">📤 Export Selected Firelizard</button>
     <button onclick="importSingleFirelizard()">📥 Import One</button>
   </div>
 
-  <!-- Rest of your HTML and scripts remain unchanged -->
-
   <script>
+    let firelizards = [];
+
+    function showTab(tabId) {
+      const tabs = ['adoptTab', 'listTab', 'breedTab', 'showTab', 'geneTab', 'resetTab'];
+      tabs.forEach(id => document.getElementById(id).style.display = id === tabId ? 'block' : 'none');
+    }
+
+    function showAdoptionOptions() {
+      const container = document.getElementById('adoptionArea');
+      container.innerHTML = '<p>Here are your available firelizards for adoption!</p>';
+    }
+
+    function loadFirelizards() {
+      const savedData = localStorage.getItem('firelizards');
+      firelizards = savedData ? JSON.parse(savedData) : [];
+      updateFirelizardList();
+    }
+
+    function updateFirelizardList() {
+      const flList = document.getElementById('flList');
+      flList.innerHTML = firelizards.map(fl => `<li>${fl.name}</li>`).join('');
+    }
+
+    function saveFirelizards() {
+      localStorage.setItem('firelizards', JSON.stringify(firelizards));
+    }
+
     window.onload = function () {
       loadFirelizards();
       showTab('adoptTab');
