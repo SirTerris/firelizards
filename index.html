@@ -50,6 +50,14 @@
     <p><strong>Prettyshinies:</strong> <span id="prettyshinies">0</span></p>
   </div>
 
+  <div class="fl-box">
+    <h2>Gene Testing Lab</h2>
+    <label for="testSelect">Select Firelizard:</label>
+    <select id="testSelect"></select>
+    <button onclick="geneTestFirelizard()">Test Genes (5000 Prettyshinies)</button>
+    <pre id="geneTestResult"></pre>
+  </div>
+
   <script>
     let firelizards = [];
 let prettyshinies = 0;
@@ -157,11 +165,13 @@ ${statsToString(stats)}`;
       const parent1 = document.getElementById('parent1');
       const parent2 = document.getElementById('parent2');
       const showSelect = document.getElementById('showSelect');
+      const testSelect = document.getElementById('testSelect');
 
       flList.innerHTML = '';
       parent1.innerHTML = '';
       parent2.innerHTML = '';
       showSelect.innerHTML = '';
+      testSelect.innerHTML = '';
 
       firelizards.forEach(fl => {
         const li = document.createElement('li');
@@ -181,6 +191,10 @@ ${statsToString(stats)}`;
         option3.value = fl.id;
         option3.textContent = `${fl.name} (${fl.appearance})`;
         showSelect.appendChild(option3);
+        const option4 = document.createElement('option');
+        option4.value = fl.id;
+        option4.textContent = `${fl.name} (${fl.appearance})`;
+        testSelect.appendChild(option4);
       });
     }
 
@@ -322,7 +336,24 @@ Show score: ${score}, Prettyshinies earned: ${reward}`;
       document.getElementById('adoptionArea').innerHTML = '';
     }
 
+    function geneTestFirelizard() {
+      const id = parseInt(document.getElementById('testSelect').value);
+      const fl = firelizards[id];
+      const cost = 5000;
+      if (prettyshinies < cost) {
+        document.getElementById('geneTestResult').textContent = `Not enough Prettyshinies to perform test. (${cost} required)`;
+        return;
+      }
+      prettyshinies -= cost;
+      let geneString = Object.entries(fl.genes).map(([k, v]) => `${k.toUpperCase()}: ${v.join('/')}`).join(', ');
+      document.getElementById('geneTestResult').textContent = `${fl.name}'s genes: ${geneString}`;
+      document.getElementById('prettyshinies').textContent = prettyshinies;
+      saveFirelizards();
+    }
+
     window.onload = loadFirelizards;
   </script>
+</body>
+</html>
 </body>
 </html>
