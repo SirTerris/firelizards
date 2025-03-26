@@ -20,7 +20,8 @@
     <button onclick="showTab('showTab')">Show</button>
     <button onclick="showTab('geneTab')">Gene Testing</button>
     <button onclick="showTab('resetTab')">Reset</button>
-  </nav>
+  $1
+    <button onclick="showTab('phenotypeTab')">Phenotype Checklist</button>
   <h1>🔥 Firelizard Breeder</h1>
 
   <div class="fl-box" id="adoptTab" style="display: block;">
@@ -44,7 +45,24 @@
     <button onclick="importSingleFirelizard()">📥 Import One</button>
 </div>
 
-<div class="fl-box" id="breedTab" style="display: none;">
+  
+<style>
+  .filter-buttons button { margin: 2px; }
+</style>
+
+$1
+    <div class="filter-buttons">
+      <button onclick="filterPhenotypes('all')">Show All</button>
+      <button onclick="filterPhenotypes('pale')">Only Pale</button>
+      <button onclick="filterPhenotypes('metallic')">Only Metallic</button>
+      <button onclick="filterPhenotypes('standard')">Standard</button>
+    </div>
+    <p><strong>Completed:</strong> <span id="phenotypeCount">0</span> / <span id="phenotypeTotal">0</span></p>
+    <h2>Phenotype Checklist</h2>
+    <ul id="phenotypeList"></ul>
+  </div>
+
+$1 style="display: none;">
     <h2>Breed Firelizards</h2>
     <label for="parent1">Select Parent 1:</label>
     <select id="parent1"></select>
@@ -122,44 +140,51 @@ let prettyshinies = 0;
     }
 
     function getAppearance(genes) {
-      const [B1, B2] = genes.b || [];
-      const isBrown = B1 === 'B' || B2 === 'B';
-      const [G1, G2] = genes.g || [];
-      const [D1, D2] = genes.d || [];
-      const [M1, M2] = genes.m || [];
-      const [P1, P2] = genes.p || [];
-      const [A1, A2] = genes.a || [];
+  const [B1, B2] = genes.b || [];
+  const isBrown = B1 === 'B' || B2 === 'B';
+  const [G1, G2] = genes.g || [];
+  const [D1, D2] = genes.d || [];
+  const [M1, M2] = genes.m || [];
+  const [P1, P2] = genes.p || [];
+  const [A1, A2] = genes.a || [];
 
-      let baseColor = 'Unknown';
-      if (isBrown) baseColor = 'Brown';
-      else {
-        const green = G1 === 'G' || G2 === 'G';
-        const red = G1 === 'g' && G2 === 'g';
-        const dilute = D1 === 'd' && D2 === 'd';
-        if (green) baseColor = dilute ? 'Blue' : 'Green';
-        else if (red) baseColor = dilute ? 'Yellow' : 'Red';
-      }
+  let baseColor = 'Unknown';
+  if (isBrown) baseColor = 'Brown';
+  else {
+    const green = G1 === 'G' || G2 === 'G';
+    const red = G1 === 'g' && G2 === 'g';
+    const dilute = D1 === 'd' && D2 === 'd';
+    if (green) baseColor = dilute ? 'Blue' : 'Green';
+    else if (red) baseColor = dilute ? 'Yellow' : 'Red';
+  }
 
-      const metallic = M1 === 'm' && M2 === 'm';
-      let sex = Math.random() < 0.5 ? 'Male' : 'Female';
-      if (metallic) {
-        if (baseColor === 'Green') baseColor = sex === 'Male' ? 'Tarnished Bronze' : 'Tarnished Gold';
-        else if (baseColor === 'Red') baseColor = sex === 'Male' ? 'Copper' : 'Rose Gold';
-        else if (baseColor === 'Blue') baseColor = sex === 'Male' ? 'Chrome' : 'Silver';
-        else if (baseColor === 'Yellow') baseColor = sex === 'Male' ? 'Copper' : 'Rose Gold';
-        else baseColor = sex === 'Male' ? 'Bronze' : 'Gold';
-      }
+  const metallic = M1 === 'm' && M2 === 'm';
+  let sex = Math.random() < 0.5 ? 'Male' : 'Female';
+  if (metallic) {
+    if (baseColor === 'Green') baseColor = sex === 'Male' ? 'Tarnished Bronze' : 'Tarnished Gold';
+    else if (baseColor === 'Red') baseColor = sex === 'Male' ? 'Copper' : 'Rose Gold';
+    else if (baseColor === 'Blue') baseColor = sex === 'Male' ? 'Chrome' : 'Silver';
+    else if (baseColor === 'Yellow') baseColor = sex === 'Male' ? 'Copper' : 'Rose Gold';
+    else baseColor = sex === 'Male' ? 'Bronze' : 'Gold';
+  }
 
-      const melanistic = P1 === 'P' || P2 === 'P';
-      const doubleMelanistic = P1 === 'P' && P2 === 'P';
-      if (doubleMelanistic) baseColor = 'Black';
+  const melanistic = P1 === 'P' || P2 === 'P';
+  const doubleMelanistic = P1 === 'P' && P2 === 'P';
+  if (doubleMelanistic) baseColor = 'Black';
 
-      const albino = A1 === 'A' || A2 === 'A';
-      const doubleAlbino = A1 === 'A' && A2 === 'A';
-      if (doubleAlbino) baseColor = 'White';
-      else if (albino) baseColor = 'Pale ' + baseColor;
+  const albino = A1 === 'A' || A2 === 'A';
+  const doubleAlbino = A1 === 'A' && A2 === 'A';
+  if (doubleAlbino) baseColor = 'White';
+  else if (albino) baseColor = 'Pale ' + baseColor;
 
-      return `${sex} ${baseColor}`;
+  let markings = [];
+  if (genes.mo && genes.mo[0] === 'mo' && genes.mo[1] === 'mo') markings.push('Mottled');
+  if (genes.tg && genes.tg[0] === 'tg' && genes.tg[1] === 'tg') markings.push('Striped');
+  if (genes.sp && genes.sp[0] === 'sp' && genes.sp[1] === 'sp') markings.push('Spotted');
+
+  const markingString = markings.length ? ` + ${markings.join(' + ')}` : '';
+  return `${sex} ${baseColor}${markingString}`;
+}
     }
 
     function generateRandomFirelizard(name, genes, stats, cost = 0) {
@@ -173,6 +198,7 @@ let prettyshinies = 0;
       const id = firelizards.length;
       firelizards.push({ id, name, genes, appearance, stats, shows: 0 });
       updateFirelizardList();
+  updatePhenotypeChecklist();
       document.getElementById('flDisplay').textContent = `You adopted ${name}: ${appearance}
 ${statsToString(stats)}`;
       document.getElementById('prettyshinies').textContent = prettyshinies;
@@ -196,7 +222,7 @@ ${statsToString(stats)}`;
 
       firelizards.forEach(fl => {
         const li = document.createElement('li');
-        li.innerHTML = `<strong>${fl.name}</strong>: ${fl.appearance}<br>${statsToString(fl.stats)}<br>Shows Entered: ${fl.shows}<br><input class="rename-input" type="text" placeholder="Rename" onchange="renameFirelizard(${fl.id}, this.value)">`;
+        li.innerHTML = `<strong>${fl.name}</strong>: ${fl.appearance}<br>${statsToString(fl.stats)}<br>Shows Entered: ${fl.shows}<br><input class="rename-input" type="text" placeholder="Rename" onchange="renameFirelizard(${fl.id}, this.value)"> <button onclick="deleteFirelizard(${fl.id})">❌ Delete</button>`;
         flList.appendChild(li);
 
         const option1 = document.createElement('option');
@@ -424,7 +450,73 @@ Show score: ${score}, Prettyshinies earned: ${reward}`;
       }
     }
 
-    window.onload = function () {
+    function deleteFirelizard(id) {
+      if (confirm('Are you sure you want to delete this firelizard?')) {
+        firelizards.splice(id, 1);
+        firelizards.forEach((fl, index) => fl.id = index);
+        updateFirelizardList();
+        saveFirelizards();
+      }
+    }
+
+    const allPhenotypes = [
+  'Male Brown', 'Female Brown',
+  'Male Green', 'Female Green', 'Male Blue', 'Female Blue',
+  'Male Red', 'Female Red', 'Male Yellow', 'Female Yellow',
+  'Bronze', 'Gold',
+  'Tarnished Bronze', 'Tarnished Gold',
+  'Chrome', 'Silver',
+  'Copper', 'Rose Gold',
+  'Black', 'White', 'Pale Brown', 'Pale Green', 'Pale Blue', 'Pale Red', 'Pale Yellow',
+  'Pale Bronze', 'Pale Gold', 'Pale Chrome', 'Pale Silver', 'Pale Copper', 'Pale Rose Gold',
+  'Mottled', 'Striped', 'Spotted',
+  'Mottled + Striped', 'Mottled + Spotted', 'Striped + Spotted',
+  'Mottled + Striped + Spotted'
+];
+
+function updatePhenotypeChecklist() {
+  const seen = new Set(firelizards.map(fl => fl.appearance));
+  const list = document.getElementById('phenotypeList');
+  const totalSpan = document.getElementById('phenotypeTotal');
+  const countSpan = document.getElementById('phenotypeCount');
+
+  let count = 0;
+  list.innerHTML = '';
+  allPhenotypes.forEach(pheno => {
+    const hasSeen = seen.has(pheno);
+    if (hasSeen) count++;
+    const li = document.createElement('li');
+    const checked = hasSeen ? '✅' : '⬜';
+    li.textContent = `${checked} ${pheno}`;
+    li.dataset.pheno = pheno.toLowerCase();
+    list.appendChild(li);
+  });
+  totalSpan.textContent = allPhenotypes.length;
+  countSpan.textContent = count;
+}
+  list.innerHTML = '';
+  allPhenotypes.forEach(pheno => {
+    const li = document.createElement('li');
+    const checked = seen.has(pheno) ? '✅' : '⬜';
+    li.textContent = `${checked} ${pheno}`;
+    list.appendChild(li);
+  });
+}
+
+function filterPhenotypes(type) {
+  const items = document.querySelectorAll('#phenotypeList li');
+  items.forEach(item => {
+    const text = item.dataset.pheno;
+    let show = false;
+    if (type === 'all') show = true;
+    else if (type === 'pale') show = text.includes('pale');
+    else if (type === 'metallic') show = ['bronze', 'gold', 'chrome', 'silver', 'copper', 'rose gold'].some(m => text.includes(m));
+    else if (type === 'standard') show = !text.includes('pale') && !['bronze', 'gold', 'chrome', 'silver', 'copper', 'rose gold'].some(m => text.includes(m));
+    item.style.display = show ? '' : 'none';
+  });
+}
+
+window.onload = function () {
       loadFirelizards();
       showTab('adoptTab');
     };
