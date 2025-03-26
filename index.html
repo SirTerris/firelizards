@@ -13,15 +13,24 @@
 </head>
 <body>
   <h1>🔥 Firelizard Breeder</h1>
+  <nav>
+    <button onclick="showTab('adoptTab')">Adopt</button>
+    <button onclick="showTab('listTab')">Your Firelizards</button>
+    <button onclick="showTab('breedTab')">Breed</button>
+    <button onclick="showTab('showTab')">Show</button>
+    <button onclick="showTab('geneTab')">Gene Testing</button>
+    <button onclick="showTab('resetTab')">Reset</button>
+  </nav>
+  <h1>🔥 Firelizard Breeder</h1>
 
-  <div class="fl-box">
+  <div class="fl-box" id="adoptTab" style="display: block;">
     <h2>Adopt a Firelizard</h2>
     <button onclick="showAdoptionOptions()">See Available Firelizards</button>
     <div id="adoptionArea"></div>
     <pre id="flDisplay"></pre>
   </div>
 
-  <div class="fl-box">
+  <div class="fl-box" id="listTab" style="display: none;">
     <h2>Your Firelizards</h2>
     <button onclick="saveFirelizards()">💾 Save</button>
     <button onclick="loadFirelizards()">📂 Load</button>
@@ -29,9 +38,13 @@
     <button onclick="importFirelizards()">⬆️ Import</button>
     <textarea id="dataArea" placeholder="Copy/exported data here or paste to import..."></textarea>
     <ul id="flList"></ul>
-  </div>
+  <label for="exportSelect">Select Firelizard to Export:</label>
+    <select id="exportSelect"></select>
+    <button onclick="exportSingleFirelizard()">📤 Export Selected Firelizard</button>
+    <button onclick="importSingleFirelizard()">📥 Import One</button>
+</div>
 
-  <div class="fl-box">
+<div class="fl-box" id="breedTab" style="display: none;">
     <h2>Breed Firelizards</h2>
     <label for="parent1">Select Parent 1:</label>
     <select id="parent1"></select>
@@ -41,7 +54,7 @@
     <pre id="offspringDisplay"></pre>
   </div>
 
-  <div class="fl-box">
+  <div class="fl-box" id="showTab" style="display: none;">
     <h2>Show Your Firelizard</h2>
     <label for="showSelect">Select Firelizard:</label>
     <select id="showSelect"></select>
@@ -50,7 +63,7 @@
     <p><strong>Prettyshinies:</strong> <span id="prettyshinies">0</span></p>
   </div>
 
-  <div class="fl-box">
+  <div class="fl-box" id="geneTab" style="display: none;">
     <h2>Gene Testing Lab</h2>
     <label for="testSelect">Select Firelizard:</label>
     <select id="testSelect"></select>
@@ -58,7 +71,7 @@
     <pre id="geneTestResult"></pre>
   </div>
 
-  <div class="fl-box">
+  <div class="fl-box" id="resetTab" style="display: none;">
     <h2>Reset Game</h2>
     <button onclick="resetGame()">⚠️ Reset All Progress</button>
     <p><em>This will delete all firelizards and Prettyshinies permanently.</em></p>
@@ -172,12 +185,14 @@ ${statsToString(stats)}`;
       const parent2 = document.getElementById('parent2');
       const showSelect = document.getElementById('showSelect');
       const testSelect = document.getElementById('testSelect');
+      const exportSelect = document.getElementById('exportSelect');
 
       flList.innerHTML = '';
       parent1.innerHTML = '';
       parent2.innerHTML = '';
       showSelect.innerHTML = '';
       testSelect.innerHTML = '';
+      exportSelect.innerHTML = '';
 
       firelizards.forEach(fl => {
         const li = document.createElement('li');
@@ -201,6 +216,10 @@ ${statsToString(stats)}`;
         option4.value = fl.id;
         option4.textContent = `${fl.name} (${fl.appearance})`;
         testSelect.appendChild(option4);
+        const option5 = document.createElement('option');
+        option5.value = fl.id;
+        option5.textContent = `${fl.name} (${fl.appearance})`;
+        exportSelect.appendChild(option5);
       });
     }
 
@@ -373,10 +392,42 @@ Show score: ${score}, Prettyshinies earned: ${reward}`;
       }
     }
 
-    window.onload = loadFirelizards;
-  </script>
-</body>
-</html>
+    function showTab(tabId) {
+      const tabs = ['adoptTab', 'listTab', 'breedTab', 'showTab', 'geneTab', 'resetTab'];
+      tabs.forEach(id => {
+        document.getElementById(id).style.display = id === tabId ? 'block' : 'none';
+      });
+    }
 
+    function exportSingleFirelizard() {
+      const id = parseInt(document.getElementById('exportSelect').value);
+      const fl = firelizards[id];
+      if (!fl) return;
+      const singleData = JSON.stringify(fl, null, 2);
+      document.getElementById('dataArea').value = singleData;
+    }
+
+    function importSingleFirelizard() {
+      try {
+        const input = document.getElementById('dataArea').value;
+        const imported = JSON.parse(input);
+        if (imported && imported.name && imported.genes && imported.stats) {
+          const id = firelizards.length;
+          imported.id = id;
+          imported.name = imported.name + ' (imported)';
+          firelizards.push(imported);
+          updateFirelizardList();
+          saveFirelizards();
+        }
+      } catch (e) {
+        alert('Invalid firelizard data.');
+      }
+    }
+
+    window.onload = function () {
+      loadFirelizards();
+      showTab('adoptTab');
+    };
+  </script>
 </body>
 </html>
